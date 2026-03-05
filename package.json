@@ -1,0 +1,11 @@
+{
+    "name": "factory-management-system",
+    "version": "1.0.0",
+    "description": "Unified entry point for the Factory Management System",
+    "scripts": {
+        "backend": "npm run dev --prefix backend",
+        "frontend": "npm run dev --prefix frontend",
+        "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+        "install-all": "npm install && npm install --prefix backend && npm install --prefix frontend"
+    }
+}
