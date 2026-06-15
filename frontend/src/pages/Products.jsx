@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 const CATEGORIES = ['Room Cooler', 'Fan', 'Washing Machine', 'Spinner'];
 
 const emptyProduct = { name: '', description: '', category: 'Room Cooler', image: '' };
-const emptyModel = { name: '', product: '', description: '', price: '', manufacturingCost: '', image: '', bom: [] };
+const emptyModel = { name: '', product: '', description: '', price: '', productionCost: '', manufacturingCost: '', image: '', bom: [] };
 
 const Products = () => {
     const [products, setProducts] = useState([]);
@@ -69,7 +69,19 @@ const Products = () => {
 
     const saveModel = async () => {
         try {
-            const payload = { ...modelModal.data, bom: modelModal.data.bom.filter(b => b.rawMaterial) };
+            const currentBomCost = modelModal.data.bom.reduce((sum, item) => {
+                if (!item.rawMaterial) return sum;
+                const material = rawMaterials.find(rm => rm._id === item.rawMaterial);
+                const cost = material ? material.costPerUnit : 0;
+                return sum + (Number(item.quantity) || 0) * cost;
+            }, 0);
+            const computedMfgCost = (Number(modelModal.data.productionCost) || 0) + currentBomCost;
+
+            const payload = { 
+                ...modelModal.data, 
+                manufacturingCost: computedMfgCost,
+                bom: modelModal.data.bom.filter(b => b.rawMaterial) 
+            };
             if (modelModal.editing) {
                 await updateModel(modelModal.editing, payload);
                 toast.success('Model updated');
@@ -90,6 +102,13 @@ const Products = () => {
 
     const filteredProducts = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
     const filteredModels = models.filter(m => m.name.toLowerCase().includes(search.toLowerCase()));
+
+    const currentBomCost = modelModal.data.bom.reduce((sum, item) => {
+        if (!item.rawMaterial) return sum;
+        const material = rawMaterials.find(rm => rm._id === item.rawMaterial);
+        const cost = material ? material.costPerUnit : 0;
+        return sum + (Number(item.quantity) || 0) * cost;
+    }, 0);
 
     return (
         <div className="space-y-6">
@@ -195,7 +214,7 @@ const Products = () => {
                                             <td><span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{m.bom?.length} Items</span></td>
                                             <td>
                                                 <div className="flex gap-2 justify-end">
-                                                    <button onClick={() => setModelModal({ open: true, data: { name: m.name, image: m.image, manufacturingCost: m.manufacturingCost, price: m.price, product: m.product?._id, bom: m.bom?.map(b => ({ rawMaterial: b.rawMaterial?._id, quantity: b.quantity })) || [] }, editing: m._id })} className="p-2 rounded-lg bg-slate-100 hover:bg-purple-600 text-slate-500 hover:text-white transition-all"><MdEdit size={16} /></button>
+                                                    <button onClick={() => setModelModal({ open: true, data: { name: m.name, image: m.image, productionCost: m.productionCost || 0, manufacturingCost: m.manufacturingCost, price: m.price, product: m.product?._id, bom: m.bom?.map(b => ({ rawMaterial: b.rawMaterial?._id, quantity: b.quantity })) || [] }, editing: m._id })} className="p-2 rounded-lg bg-slate-100 hover:bg-purple-600 text-slate-500 hover:text-white transition-all"><MdEdit size={16} /></button>
                                                     <button onClick={() => removeModel(m._id)} className="p-2 rounded-lg bg-slate-100 hover:bg-rose-600 text-slate-500 hover:text-white transition-all"><MdDelete size={16} /></button>
                                                 </div>
                                             </td>
@@ -239,8 +258,25 @@ const Products = () => {
                             </select>
                         </div>
                         <div><label className="block text-slate-600 text-sm font-medium mb-1">Price (Rs.)</label><input type="number" value={modelModal.data.price} onChange={e => setModelModal(p => ({ ...p, data: { ...p.data, price: e.target.value } }))} className="form-input" /></div>
-                        <div><label className="block text-slate-600 text-sm font-medium mb-1">Mfg Cost (Rs.)</label><input type="number" value={modelModal.data.manufacturingCost} onChange={e => setModelModal(p => ({ ...p, data: { ...p.data, manufacturingCost: e.target.value } }))} className="form-input" /></div>
+                        <div><label className="block text-slate-600 text-sm font-medium mb-1">Production Cost (Rs.)</label><input type="number" value={modelModal.data.productionCost} onChange={e => setModelModal(p => ({ ...p, data: { ...p.data, productionCost: e.target.value } }))} className="form-input" placeholder="e.g. 20" /></div>
                     </div>
+                    
+                    {/* Cost Summary Panel */}
+                    <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Manufacturing Cost Breakdown</span>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm font-medium text-slate-600">
+                                <span>Production Cost: <strong className="text-slate-800">Rs. {Number(modelModal.data.productionCost || 0).toLocaleString()}</strong></span>
+                                <span className="text-slate-300 hidden sm:inline">|</span>
+                                <span>BOM Cost: <strong className="text-slate-800">Rs. {currentBomCost.toLocaleString()}</strong></span>
+                            </div>
+                        </div>
+                        <div className="sm:text-right border-t sm:border-t-0 pt-2 sm:pt-0 w-full sm:w-auto">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Calculated Mfg Cost</span>
+                            <span className="text-xl font-extrabold text-purple-600">Rs. {(Number(modelModal.data.productionCost || 0) + currentBomCost).toLocaleString()}</span>
+                        </div>
+                    </div>
+
                     <div><label className="block text-slate-600 text-sm font-medium mb-1">Image URL</label><input value={modelModal.data.image} onChange={e => setModelModal(p => ({ ...p, data: { ...p.data, image: e.target.value } }))} className="form-input" placeholder="https://..." /></div>
 
                     {/* BOM Section */}

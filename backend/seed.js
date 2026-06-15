@@ -77,6 +77,7 @@ const seed = async () => {
             product: products[0]._id,
             description: '3000 CFM heavy-duty room cooler',
             price: 18000,
+            productionCost: 6450,
             manufacturingCost: 9000,
             image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=300',
             bom: [
@@ -91,6 +92,7 @@ const seed = async () => {
             product: products[0]._id,
             description: '1500 CFM compact room cooler',
             price: 10000,
+            productionCost: 2850,
             manufacturingCost: 5000,
             image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=300',
             bom: [
@@ -104,7 +106,8 @@ const seed = async () => {
             product: products[1]._id,
             description: '56-inch premium ceiling fan',
             price: 5500,
-            manufacturingCost: 2500,
+            productionCost: 290,
+            manufacturingCost: 3000,
             image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300',
             bom: [
                 { rawMaterial: materials[1]._id, quantity: 10 },
@@ -118,6 +121,7 @@ const seed = async () => {
             product: products[1]._id,
             description: '16-inch table fan',
             price: 2200,
+            productionCost: 330,
             manufacturingCost: 900,
             image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300',
             bom: [
@@ -131,6 +135,7 @@ const seed = async () => {
             product: products[2]._id,
             description: '8kg fully automatic top-load washing machine',
             price: 45000,
+            productionCost: 15630,
             manufacturingCost: 22000,
             image: 'https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?w=300',
             bom: [
@@ -145,6 +150,7 @@ const seed = async () => {
             product: products[3]._id,
             description: '10kg high-speed spinner',
             price: 8500,
+            productionCost: 1240,
             manufacturingCost: 4000,
             image: 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=300',
             bom: [

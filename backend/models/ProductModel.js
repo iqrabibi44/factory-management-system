@@ -11,6 +11,7 @@ const productModelSchema = new mongoose.Schema({
     product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
     description: { type: String },
     price: { type: Number, required: true, min: 0 },
+    productionCost: { type: Number, default: 0, min: 0 },
     manufacturingCost: { type: Number, required: true, min: 0 },
     image: { type: String, default: '' },
     bom: [bomItemSchema], // Bill of Materials
