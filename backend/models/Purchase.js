@@ -4,13 +4,19 @@ const purchaseItemSchema = new mongoose.Schema({
     rawMaterial: { type: mongoose.Schema.Types.ObjectId, ref: 'RawMaterial', required: true },
     quantity: { type: Number, required: true, min: 1 },
     rate: { type: Number, required: true, min: 0 },
+    batchNumber: { type: String, required: true },
 });
 
 const purchaseSchema = new mongoose.Schema({
-    supplier: { type: String, required: true, trim: true },
+    // New: reference to Vendor Master
+    vendor: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor', default: null },
+    // Legacy: plain text supplier (kept for backward compatibility with old records)
+    supplier: { type: String, trim: true },
+    invoiceNo: { type: String, trim: true },
     date: { type: Date, default: Date.now },
     items: [purchaseItemSchema],
     totalCost: { type: Number, default: 0 },
+    amountPaid: { type: Number, default: 0 },
     notes: { type: String },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });

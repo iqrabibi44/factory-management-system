@@ -1,9 +1,11 @@
 const Sale = require('../models/Sale');
 const Production = require('../models/Production');
+const ProductionSession = require('../models/ProductionSession');
 const Purchase = require('../models/Purchase');
 const RawMaterial = require('../models/RawMaterial');
 const FinishedGood = require('../models/FinishedGood');
 const ProductModel = require('../models/ProductModel');
+const InventoryBatch = require('../models/InventoryBatch');
 
 // @desc    Get dashboard summary
 // @route   GET /api/reports/dashboard
@@ -114,11 +116,98 @@ const getProductionReport = async (req, res) => {
 
         const productions = await Production.find(matchStage)
             .populate({ path: 'model', populate: { path: 'product', select: 'name category' } })
+            .populate('materialsUsed.rawMaterial', 'name unit costPerUnit')
             .sort({ date: -1 });
 
         const totalUnits = productions.reduce((sum, p) => sum + p.quantity, 0);
         const totalCost = productions.reduce((sum, p) => sum + p.totalManufacturingCost, 0);
         res.json({ productions, totalUnits, totalCost, count: productions.length });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get batch-wise inventory stock report
+// @route   GET /api/reports/batches
+const getBatchesReport = async (req, res) => {
+    try {
+        const batches = await InventoryBatch.find({ remainingQuantity: { $gt: 0 } })
+            .populate('rawMaterial', 'name unit costPerUnit')
+            .sort({ purchaseDate: -1 });
+        res.json(batches);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get waste analysis report
+// @route   GET /api/reports/waste
+const getWasteReport = async (req, res) => {
+    try {
+        const sessions = await ProductionSession.find({ status: 'closed' }).populate('materialsSummary.rawMaterial', 'name unit costPerUnit');
+        const summary = {};
+
+        sessions.forEach(sess => {
+            (sess.materialsSummary || []).forEach(item => {
+                if (!item.rawMaterial) return;
+                const matId = item.rawMaterial._id.toString();
+                if (!summary[matId]) {
+                    summary[matId] = {
+                        name: item.rawMaterial.name,
+                        unit: item.rawMaterial.unit,
+                        standardQuantity: 0,
+                        actualQuantity: 0,
+                        waste: 0,
+                        cost: 0,
+                        costPerUnit: item.rawMaterial.costPerUnit || 0
+                    };
+                }
+                summary[matId].standardQuantity += item.standardQuantity || 0;
+                summary[matId].actualQuantity += item.totalUsed || 0;
+                summary[matId].waste += item.waste || 0;
+                summary[matId].cost += item.cost || 0;
+            });
+        });
+
+        res.json(Object.values(summary));
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get inventory valuation report
+// @route   GET /api/reports/valuation
+const getValuationReport = async (req, res) => {
+    try {
+        const [rawMaterials, finishedGoods] = await Promise.all([
+            RawMaterial.find({}),
+            FinishedGood.find({}).populate('model', 'name price manufacturingCost')
+        ]);
+
+        const rawValuation = rawMaterials.reduce((sum, m) => sum + (m.quantity * (m.costPerUnit || 0)), 0);
+        const finishedValuation = finishedGoods.reduce((sum, fg) => {
+            const cost = fg.model?.manufacturingCost || fg.model?.price || 0;
+            return sum + (fg.quantity * cost);
+        }, 0);
+
+        res.json({
+            rawMaterialsValuation: rawValuation,
+            finishedGoodsValuation: finishedValuation,
+            totalValuation: rawValuation + finishedValuation,
+            rawMaterialsList: rawMaterials.map(m => ({
+                name: m.name,
+                quantity: m.quantity,
+                unit: m.unit,
+                costPerUnit: m.costPerUnit,
+                value: m.quantity * m.costPerUnit
+            })),
+            finishedGoodsList: finishedGoods.map(fg => ({
+                name: fg.model?.name || 'Unknown',
+                quantity: fg.quantity,
+                costPerUnit: fg.model?.manufacturingCost || 0,
+                value: fg.quantity * (fg.model?.manufacturingCost || 0)
+            }))
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -190,4 +279,12 @@ const getFullReport = async (req, res) => {
     }
 };
 
-module.exports = { getDashboard, getSalesReport, getProductionReport, getFullReport };
+module.exports = {
+    getDashboard,
+    getSalesReport,
+    getProductionReport,
+    getBatchesReport,
+    getWasteReport,
+    getValuationReport,
+    getFullReport
+};

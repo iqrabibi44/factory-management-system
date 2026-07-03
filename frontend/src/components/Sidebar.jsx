@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import {
     MdDashboard, MdCategory, MdInventory2, MdLocalShipping,
-    MdFactory, MdPointOfSale, MdBarChart, MdPeople, MdLogout
+    MdFactory, MdPointOfSale, MdBarChart, MdPeople, MdLogout,
+    MdBusiness, MdPerson
 } from 'react-icons/md';
 import { FaIndustry } from 'react-icons/fa';
 
@@ -11,8 +12,10 @@ const allLinks = [
     { to: '/dashboard', icon: MdDashboard, label: 'Dashboard', roles: null },
     { to: '/products', icon: MdCategory, label: 'Products', roles: ['admin', 'production_manager'] },
     { to: '/inventory', icon: MdInventory2, label: 'Spare Parts', roles: ['admin', 'store_manager', 'production_manager'] },
+    { to: '/vendors', icon: MdBusiness, label: 'Vendors', roles: ['admin', 'store_manager'], sub: true },
     { to: '/purchases', icon: MdLocalShipping, label: 'Purchases', roles: ['admin', 'store_manager'] },
     { to: '/production', icon: MdFactory, label: 'Manufacture', roles: ['admin', 'production_manager'] },
+    { to: '/customers', icon: MdPerson, label: 'Customers', roles: ['admin', 'sales_manager'], sub: true },
     { to: '/sales', icon: MdPointOfSale, label: 'Sales', roles: ['admin', 'sales_manager'] },
     { to: '/reports', icon: MdBarChart, label: 'Reports', roles: null },
     { to: '/users', icon: MdPeople, label: 'Users', roles: ['admin'] },
@@ -49,19 +52,20 @@ const Sidebar = ({ isOpen }) => {
 
             {/* Nav Links */}
             <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-                {links.map(({ to, icon: Icon, label }) => (
+                {links.map(({ to, icon: Icon, label, sub }) => (
                     <NavLink
                         key={to}
                         to={to}
                         className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+               ${sub ? 'ml-3 text-[13px]' : ''}
                ${isActive
                                 ? 'bg-primary-500/20 text-primary-300 border border-primary-500/25'
                                 : 'text-slate-400 hover:text-white hover:bg-white/8'
                             }`
                         }
                     >
-                        <Icon size={18} className="flex-shrink-0" />
+                        <Icon size={sub ? 16 : 18} className="flex-shrink-0" />
                         {label}
                     </NavLink>
                 ))}

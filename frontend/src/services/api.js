@@ -59,8 +59,13 @@ export const createPurchase = (data) => API.post('/purchases', data);
 export const deletePurchase = (id) => API.delete(`/purchases/${id}`);
 
 // Production
-export const getProductions = (params) => API.get('/production', { params });
-export const createProduction = (data) => API.post('/production', data);
+export const getActiveSession = () => API.get('/production/session/active');
+export const startSession = (data) => API.post('/production/session/start', data);
+export const addSessionEntry = (data) => API.post('/production/session/entry', data);
+export const endSession = (data) => API.post('/production/session/end', data);
+export const reopenSession = (id) => API.post(`/production/session/reopen/${id}`);
+export const getSessionsList = (params) => API.get('/production/sessions', { params });
+export const getSessionDetail = (id) => API.get(`/production/session/${id}`);
 export const checkMaterialAvailability = (data) => API.post('/production/check', data);
 
 // Sales
@@ -73,5 +78,22 @@ export const getDashboard = () => API.get('/reports/dashboard');
 export const getSalesReport = (params) => API.get('/reports/sales', { params });
 export const getProductionReport = (params) => API.get('/reports/production', { params });
 export const getFullReport = (params) => API.get('/reports/full', { params });
+export const getBatchesReport = () => API.get('/reports/batches');
+export const getWasteReport = () => API.get('/reports/waste');
+export const getValuationReport = () => API.get('/reports/valuation');
+
+// Vendors
+export const getVendors = (params) => API.get('/vendors', { params });
+export const getVendor = (id) => API.get(`/vendors/${id}`);
+export const createVendor = (data) => API.post('/vendors', data);
+export const updateVendor = (id, data) => API.put(`/vendors/${id}`, data);
+export const deleteVendor = (id) => API.delete(`/vendors/${id}`);
+
+// Customers
+export const getCustomers = (params) => API.get('/customers', { params });
+export const getCustomer = (id) => API.get(`/customers/${id}`);
+export const createCustomer = (data) => API.post('/customers', data);
+export const updateCustomer = (id, data) => API.put(`/customers/${id}`, data);
+export const deleteCustomer = (id) => API.delete(`/customers/${id}`);
 
 export default API;

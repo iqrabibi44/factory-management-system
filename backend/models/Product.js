@@ -5,7 +5,7 @@ const productSchema = new mongoose.Schema({
     description: { type: String },
     category: {
         type: String,
-        enum: ['Room Cooler', 'Fan', 'Washing Machine', 'Spinner'],
+        enum: ['uPVC Pipe', 'PPRC Pipe', 'HDPE Pipe'],
         required: true,
     },
     image: { type: String, default: '' },

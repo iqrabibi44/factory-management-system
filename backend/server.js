@@ -22,6 +22,8 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/models', require('./routes/modelRoutes'));
 app.use('/api/inventory', require('./routes/inventoryRoutes'));
+app.use('/api/vendors', require('./routes/vendorRoutes'));
+app.use('/api/customers', require('./routes/customerRoutes'));
 app.use('/api/purchases', require('./routes/purchaseRoutes'));
 app.use('/api/production', require('./routes/productionRoutes'));
 app.use('/api/sales', require('./routes/salesRoutes'));

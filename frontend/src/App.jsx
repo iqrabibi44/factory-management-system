@@ -7,6 +7,8 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Inventory from './pages/Inventory';
+import Vendors from './pages/Vendors';
+import Customers from './pages/Customers';
 import Purchases from './pages/Purchases';
 import Production from './pages/Production';
 import Sales from './pages/Sales';
@@ -55,6 +57,12 @@ function App() {
                         } />
 
                         {/* Admin + Store Manager */}
+                        <Route path="/vendors" element={
+                            <ProtectedRoute roles={['admin', 'store_manager']}>
+                                <Vendors />
+                            </ProtectedRoute>
+                        } />
+
                         <Route path="/purchases" element={
                             <ProtectedRoute roles={['admin', 'store_manager']}>
                                 <Purchases />
@@ -69,6 +77,12 @@ function App() {
                         } />
 
                         {/* Admin + Sales Manager */}
+                        <Route path="/customers" element={
+                            <ProtectedRoute roles={['admin', 'sales_manager']}>
+                                <Customers />
+                            </ProtectedRoute>
+                        } />
+
                         <Route path="/sales" element={
                             <ProtectedRoute roles={['admin', 'sales_manager']}>
                                 <Sales />

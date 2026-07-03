@@ -1,6 +1,7 @@
 const Sale = require('../models/Sale');
 const FinishedGood = require('../models/FinishedGood');
 const ProductModel = require('../models/ProductModel');
+const Customer = require('../models/Customer');
 
 // @desc    Get all sales
 // @route   GET /api/sales
@@ -19,6 +20,7 @@ const getSales = async (req, res) => {
         const total = await Sale.countDocuments(query);
         const sales = await Sale.find(query)
             .populate({ path: 'items.model', populate: { path: 'product', select: 'name category' } })
+            .populate('customerRef', 'name companyName mobile address ntn')
             .populate('createdBy', 'name')
             .sort({ date: -1 })
             .skip(skip).limit(limit);
@@ -34,6 +36,7 @@ const getSale = async (req, res) => {
     try {
         const sale = await Sale.findById(req.params.id)
             .populate({ path: 'items.model', populate: { path: 'product', select: 'name category image' } })
+            .populate('customerRef', 'name companyName mobile address ntn')
             .populate('createdBy', 'name');
         if (!sale) return res.status(404).json({ message: 'Sale not found' });
         res.json(sale);
@@ -46,7 +49,22 @@ const getSale = async (req, res) => {
 // @route   POST /api/sales
 const createSale = async (req, res) => {
     try {
-        const { customer, customerPhone, customerAddress, items, discount, notes } = req.body;
+        const { customerRef: customerId, customer, customerPhone, customerAddress, items, discount, amountPaid, notes } = req.body;
+
+        // If customerRef provided, validate and auto-fill details from Customer Master
+        let resolvedCustomer = customer;
+        let resolvedPhone = customerPhone;
+        let resolvedAddress = customerAddress;
+
+        if (customerId) {
+            const cust = await Customer.findById(customerId);
+            if (!cust) return res.status(404).json({ message: 'Customer not found' });
+            resolvedCustomer = cust.name;
+            resolvedPhone = customerPhone || cust.mobile;
+            resolvedAddress = customerAddress || cust.address;
+        }
+
+        if (!resolvedCustomer) return res.status(400).json({ message: 'Customer name is required' });
 
         // Check finished goods availability
         const insufficientGoods = [];
@@ -68,7 +86,14 @@ const createSale = async (req, res) => {
 
         // Create sale
         const sale = await Sale.create({
-            customer, customerPhone, customerAddress, items, discount, notes,
+            customerRef: customerId || null,
+            customer: resolvedCustomer,
+            customerPhone: resolvedPhone,
+            customerAddress: resolvedAddress,
+            items,
+            discount,
+            amountPaid: Number(amountPaid || 0),
+            notes,
             createdBy: req.user._id,
         });
 
@@ -78,7 +103,8 @@ const createSale = async (req, res) => {
         }
 
         const populated = await Sale.findById(sale._id)
-            .populate({ path: 'items.model', populate: { path: 'product', select: 'name category' } });
+            .populate({ path: 'items.model', populate: { path: 'product', select: 'name category' } })
+            .populate('customerRef', 'name companyName mobile address ntn');
 
         res.status(201).json(populated);
     } catch (error) {

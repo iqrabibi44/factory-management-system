@@ -8,6 +8,9 @@ const saleItemSchema = new mongoose.Schema({
 
 const saleSchema = new mongoose.Schema({
     invoiceNumber: { type: String, unique: true },
+    // New: reference to Customer Master
+    customerRef: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', default: null },
+    // Legacy plain-text fields (kept for backward compatibility)
     customer: { type: String, required: true, trim: true },
     customerPhone: { type: String },
     customerAddress: { type: String },
@@ -15,6 +18,7 @@ const saleSchema = new mongoose.Schema({
     items: [saleItemSchema],
     totalAmount: { type: Number, default: 0 },
     discount: { type: Number, default: 0 },
+    amountPaid: { type: Number, default: 0 },
     notes: { type: String },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
